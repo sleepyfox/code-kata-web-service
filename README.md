@@ -6,6 +6,7 @@ The objective of this code kata is to produce a simple REST web-service, that ha
 
 1. Store the details of a new account (email, password, organisation (optional))
   - also creates a unique account ID and password salt
+  - Only an admin can create a new user
 2. Retrieve customer details
   - Look up the details of an account by email address
   - Look up the details of an account by account ID
