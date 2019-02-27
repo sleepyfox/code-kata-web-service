@@ -1,0 +1,4 @@
+{:paths ["src"]
+ :deps {clj-http {:mvn/version "3.9.1"}
+        clj-time {:mvn/version "0.15.0"}
+        scenari  {:mvn/version "1.2.1"}}}
