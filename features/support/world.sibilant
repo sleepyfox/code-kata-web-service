@@ -1,0 +1,10 @@
+;; features/support/world.js
+(var { set-world-constructor } (require 'cucumber))
+
+(var custom-world (#>)) 
+(def custom-world.prototype.constructor () (set this 'variable 0))
+(def custom-world.prototype.set-to (n) (set this 'variable n))
+(def custom-world.prototype.increment-by (n) (set this 'variable (+ n this.variable)))
+
+(set-world-constructor custom-world)
+ 
