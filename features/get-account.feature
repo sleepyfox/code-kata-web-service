@@ -1,9 +1,11 @@
 Feature: get account
-
-Example: we can retrieve the account by email address
+  As a proxy
+  In order to see information about a user
+  I want to see information about a user
+  
+Scenario: we can retrieve the account by email address
   Given an active account for Mickey Mouse
   When we GET the path /account/mmouse%40disney.com
-  And the input is JSON {}
   Then we should get a reply with status 200 OK
   And the reply is a JSON object
   And the reply has an attribute "account-id"
@@ -11,10 +13,9 @@ Example: we can retrieve the account by email address
   And the "organisation" attribute is the string "Disney, Inc."
   And the "active" attribute is true
 
-Example: we can retrieve the account by account ID
+Scenario: we can retrieve the account by account ID
   Given an active account for Mickey Mouse
   When we GET the path /account/mmouse%40disney.com
-  And the input is JSON {}
   Then we should get a reply with status 200 OK
   And the reply is a JSON object
   And the reply has an attribute "account-id"

@@ -1,9 +1,33 @@
 ;; features/support/steps.sibilant
 (var { Given, When, Then } (require 'cucumber)
-     assert (require 'assert))
+     assert (require 'assert)
+     request (require 'request))
 
-(Given "a variable set to {int}" (# (number) (this.setTo number)))
+(Given "an active account for Mickey Mouse" (#>))
 
-(When "I increment the variable by {int}" (# (number) (this.incrementBy number)))
+(When (regex "^we GET the path (.*)$")
+      (# (url done)
+         (var that this)
+         (request.get "https://jsonplaceholder.typicode.com/todos/1"
+                      (# (err resp body)
+                         (that.set-response resp)
+                         (that.set-body body)
+                         (done)))))
 
-(Then "the variable should contain {int}" (# (number) (assert.equal this.variable number)))
+(Then "we should get a reply with status 200 OK"
+      (#> (assert.equal this.response.status-code 200)))
+
+(Then "the reply is a JSON object"
+      (#> (var ct (get this 'response 'headers "content-type"))
+          (assert.ok (.starts-with ct "application/json"))))
+
+(Then (regex "^the reply has an attribute \"(.*)\"$")
+      (# (x) (assert.ok (has-key? this.body x))))
+
+(Then (regex "^the \"(.*)\" attribute is the string \"(.*)\"$")
+      (# (attr val)
+         (assert.ok (has-key? this.body attr))
+         (assert.equal (get this.body attr) val)))
+                    
+(Then (regex "^the \"(.*)\" attribute is true$")
+      (# (attr) (assert.ok (get this.body attr))))

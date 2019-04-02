@@ -11,6 +11,7 @@ build: ${TEST_FILES}
 clean:
 	rm -f *~
 	rm -f features/*~
+	rm -f features/support/*~
 
 echo:
 	@ echo "TEST_SRC: ${TEST_SRC}"
