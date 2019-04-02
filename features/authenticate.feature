@@ -1,22 +1,22 @@
 Feature: Authenticate an account
+  As a user
+  In order to use the system
+  I want to log in
 
-Example: we can authenticate an account with the correct email and password, and we get a token
+Scenario: we can authenticate an account with the correct email and password, and we get a token
   Given an active account for Mickey Mouse
-  When we GET the path /account/authenticate/mmouse%40disney.com
-  And the input is JSON { "password": "minnie" }
+  When we send JSON { "password": "minnie" } with a GET to the path /account/authenticate/mmouse%40disney.com
   Then we should get a reply with status 200 OK
   And the reply is a JSON object
   And the reply has an attribute "token"
   And the "token" attribute is a string
 
-Example: we do not authenticate an account with the wrong password
+Scenario: we do not authenticate an account with the wrong password
   Given an active account for Mickey Mouse
-  When we GET the path /account/authenticate/mmouse%40disney.com
-  And the input is JSON { "password": "maxxie" }
+  When we send JSON { "password": "maxxie" } with a GET to the path /account/authenticate/mmouse%40disney.com with input
   Then we should get a reply with status 401 UNAUTHORIZED
 
-Example: we do not authenticate an account with a incorrect email address
+Scenario: we do not authenticate an account with a incorrect email address
   Given an active account for Mickey Mouse
-  When we GET the path /account/authenticate/a%40b.com
-  And the input is JSON { "password": "whatevs" }
+  When we send JSON { "password": "whatevs" } with a GET to the path /account/authenticate/a%40b.com with input
   Then we should get a reply with status 401 UNAUTHORIZED

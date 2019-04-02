@@ -5,6 +5,19 @@
 
 (Given "an active account for Mickey Mouse" (#>))
 
+(Given "that we have logged in as admin and gotten a token"
+       (#> "pending"))
+
+(When (regex "^we send JSON (.*) with a GET to the path (.*)$")
+      (# (url obj done)
+         (var that this)
+         (request.get "https://postman-echo.com/get"
+                      { 'json obj }
+                      (# (err resp body)
+                         (that.set-response resp)
+                         (that.set-body body)
+                         (done)))))
+
 (When (regex "^we GET the path (.*)$")
       (# (url done)
          (var that this)
@@ -14,8 +27,27 @@
                          (that.set-body body)
                          (done)))))
 
+(When (regex "^we POST to the path (.*)$")
+      (# (url done)
+         (var that this)
+         (request.post "https://jsonplaceholder.typicode.com/posts"
+                       {'form {'token "${self.token}"
+                               'email "mmouse@disney.com"
+                               'password "minnie"
+                               'organisation "Disney, Inc."}}
+                       (# (err resp body)
+                          (that.set-response resp)
+                          (that.set-body body)
+                          (done)))))
+
 (Then "we should get a reply with status 200 OK"
       (#> (assert.equal this.response.status-code 200)))
+
+(Then "we should get a reply with status 201 CREATED"
+      (#> (assert.equal this.response.status-code 201)))
+
+(Then "we should get a reply with status 401 UNAUTHORIZED"
+      (#> (assert.equal this.response.status-code 401)))
 
 (Then "the reply is a JSON object"
       (#> (var ct (get this 'response 'headers "content-type"))

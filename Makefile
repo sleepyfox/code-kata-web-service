@@ -1,4 +1,4 @@
-.PHONY: clean echo test
+.PHONY: clean echo test repl
 
 TEST_SRC := $(wildcard features/support/*.sibilant)
 TEST_FILES := $(TEST_SRC:%.sibilant=%.js)
@@ -22,3 +22,9 @@ test:
 	-w="/var/app" \
 	-v `pwd`/features:/var/app/features \
 	sleepyfox/cucumber-js
+
+repl:
+	docker run -it \
+	-w="/var/app" \
+	-v `pwd`/features:/var/app/features \
+	sleepyfox/cucumber-js sh
