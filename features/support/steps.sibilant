@@ -3,16 +3,28 @@
      assert (require 'assert)
      request (require 'request))
 
+(var ACCOUNT_SERVICE "http://localhost:8080")
+
 (Given "an active account for Mickey Mouse" (#>))
 
 (Given "that we have logged in as admin and gotten a token"
-       (#> "pending"))
+       (#> (this.set-token "discombobulated")))
 
 (When (regex "^we send JSON (.*) with a GET to the path (.*)$")
-      (# (url obj done)
+      (# (obj url done)
          (var that this)
-         (request.get "https://postman-echo.com/get"
-                      { 'json obj }
+         (request.get (+ ACCOUNT_SERVICE url)
+                      { 'json (JSON.parse obj) }
+                      (# (err resp body)
+                         (that.set-response resp)
+                         (that.set-body body)
+                         (done)))))
+
+(When (regex "^we send JSON (.*) with a PUT to the path (.*)$")
+      (# (obj url done)
+         (var that this)
+         (request.put (+ ACCOUNT_SERVICE url)
+                      { 'json (JSON.parse obj) }
                       (# (err resp body)
                          (that.set-response resp)
                          (that.set-body body)
@@ -21,17 +33,17 @@
 (When (regex "^we GET the path (.*)$")
       (# (url done)
          (var that this)
-         (request.get "https://jsonplaceholder.typicode.com/todos/1"
+         (request.get (+ ACCOUNT_SERVICE url)
                       (# (err resp body)
                          (that.set-response resp)
-                         (that.set-body body)
+                         (that.set-body (JSON.parse body))
                          (done)))))
 
 (When (regex "^we POST to the path (.*)$")
       (# (url done)
          (var that this)
-         (request.post "https://jsonplaceholder.typicode.com/posts"
-                       {'form {'token "${self.token}"
+         (request.post (+ ACCOUNT_SERVICE url)
+                       {'json {'token that.token
                                'email "mmouse@disney.com"
                                'password "minnie"
                                'organisation "Disney, Inc."}}
@@ -51,10 +63,15 @@
 
 (Then "the reply is a JSON object"
       (#> (var ct (get this 'response 'headers "content-type"))
-          (assert.ok (.starts-with ct "application/json"))))
+          (assert.ok (.starts-with ct "application/json"))
+          (assert.equal (typeof this.body) "object")))
 
 (Then (regex "^the reply has an attribute \"(.*)\"$")
-      (# (x) (assert.ok (has-key? this.body x))))
+      (# (x)
+         (assert.ok (has-key? this.body x))))
+
+(Then (regex "the \"(.*)\" attribute is a string$")
+      (# (attr) (assert.equal "string" (typeof (get this.body attr)))))
 
 (Then (regex "^the \"(.*)\" attribute is the string \"(.*)\"$")
       (# (attr val)

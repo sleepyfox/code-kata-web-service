@@ -8,7 +8,7 @@ Scenario: we can retrieve the account by email address
   When we GET the path /account/mmouse%40disney.com
   Then we should get a reply with status 200 OK
   And the reply is a JSON object
-  And the reply has an attribute "account-id"
+  And the reply has an attribute "account_id"
   And the "email" attribute is the string "mmouse@disney.com"
   And the "organisation" attribute is the string "Disney, Inc."
   And the "active" attribute is true
@@ -18,7 +18,7 @@ Scenario: we can retrieve the account by account ID
   When we GET the path /account/mmouse%40disney.com
   Then we should get a reply with status 200 OK
   And the reply is a JSON object
-  And the reply has an attribute "account-id"
+  And the reply has an attribute "account_id"
   And the "email" attribute is the string "mmouse@disney.com"
   And the "organisation" attribute is the string "Disney, Inc."
   And the "active" attribute is true

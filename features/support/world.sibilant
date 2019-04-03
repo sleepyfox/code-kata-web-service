@@ -1,9 +1,11 @@
 ;; features/support/world.sibilant
 (var { set-world-constructor } (require 'cucumber))
 
-(var custom-world (#>)) 
+(var custom-world (#>))
+(def custom-world.prototype.constructor () (set this 'token ""))
 (def custom-world.prototype.set-response (x) (set this 'response x))
 (def custom-world.prototype.set-body (x) (set this 'body x))
+(def custom-world.prototype.set-token (x) (set this 'token x))
 
 (set-world-constructor custom-world)
  

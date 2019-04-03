@@ -13,10 +13,10 @@ Scenario: we can authenticate an account with the correct email and password, an
 
 Scenario: we do not authenticate an account with the wrong password
   Given an active account for Mickey Mouse
-  When we send JSON { "password": "maxxie" } with a GET to the path /account/authenticate/mmouse%40disney.com with input
+  When we send JSON { "password": "maxxie" } with a GET to the path /account/authenticate/mmouse%40disney.com
   Then we should get a reply with status 401 UNAUTHORIZED
 
 Scenario: we do not authenticate an account with a incorrect email address
   Given an active account for Mickey Mouse
-  When we send JSON { "password": "whatevs" } with a GET to the path /account/authenticate/a%40b.com with input
+  When we send JSON { "password": "whatevs" } with a GET to the path /account/authenticate/a%40b.com
   Then we should get a reply with status 401 UNAUTHORIZED

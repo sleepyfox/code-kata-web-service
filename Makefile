@@ -20,6 +20,7 @@ echo:
 test:
 	docker run -it \
 	-w="/var/app" \
+	--network=host \
 	-v `pwd`/features:/var/app/features \
 	sleepyfox/cucumber-js
 
@@ -28,3 +29,15 @@ repl:
 	-w="/var/app" \
 	-v `pwd`/features:/var/app/features \
 	sleepyfox/cucumber-js sh
+
+run-mock:
+	docker run -it \
+	-p "8080:8080" \
+	-v `pwd`/mock-account-docker/server.coffee:/var/app/server.coffee:ro \
+	sleepyfox/mock-account sh -c './node_modules/.bin/coffee ./server.coffee'
+
+run-shell:
+	docker run -it \
+	-p "8080:8080" \
+	-v `pwd`/mock-account-docker/server.coffee:/var/app/server.coffee:ro \
+	sleepyfox/mock-account sh
