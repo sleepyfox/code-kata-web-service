@@ -36,9 +36,13 @@ app
       organisation: "Disney, Inc."
       active: true
   .put '/account/change_password/:user', (req, res) ->
-    console.log "User #{req.params.user} trying to change password"
-    res.json
-      message: "password changed"
+    console.log "User #{req.params.user} trying to change password with token #{req.body.token}"
+    if req.body.token is "discombobulate"
+      res.json
+        message: "password changed"
+    else
+      res.status(401).json
+        message: "Request unauthenticated!"
   .listen PORT, (err) ->
     throw err if err
     console.log "Express server running on localhost:#{PORT}"

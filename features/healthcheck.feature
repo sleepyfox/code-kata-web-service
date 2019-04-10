@@ -3,6 +3,7 @@ Feature: Healthcheck
   In order to check that the service is running
   I want to check that the service is running
 
+@healthcheck @mvp
 Scenario: the service responds to a status request
   When we GET the path /status
   Then we should get a reply with status 200 OK

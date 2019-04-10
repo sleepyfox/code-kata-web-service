@@ -22,7 +22,7 @@ test:
 	-w="/var/app" \
 	--network=host \
 	-v `pwd`/features:/var/app/features \
-	sleepyfox/cucumber-js
+	sleepyfox/cucumber-js sh -c "npx cucumber-js -t '@mvp and not @skip'"
 
 repl:
 	docker run -it \

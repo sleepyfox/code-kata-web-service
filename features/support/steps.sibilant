@@ -3,12 +3,45 @@
      assert (require 'assert)
      request (require 'request))
 
-(var ACCOUNT_SERVICE "http://localhost:8080")
+(var ACCOUNT_SERVICE "http://localhost:8080"
+     ADMIN_TOKEN process.env.ADMIN_TOKEN)
 
-(Given "an active account for Mickey Mouse" (#>))
+(Given "an active account for Mickey Mouse"
+       (# (done)
+          ;; Then create the mmouse account
+          (request.post (+ ACCOUNT_SERVICE "/account/mmouse%40disney.com")
+                        {'json {'email "mmouse@disney.com"
+                                'password "minnie"
+                                'company_id 99
+                                'name "Michael Mouse"}
+                         'headers { 'cookie ADMIN_TOKEN }}
+                        (# (err resp body)
+                           (console.log "posted to /account/mmouse")
+                           (if err
+                             (throw err))
+                           (if (= resp.status-code 201)
+                             (done)
+                             (do
+                               (console.log "body was" body)
+                               (throw (new Error (+ "status of POST was " resp.status-code)))))))))
 
-(Given "that we have logged in as admin and gotten a token"
-       (#> (this.set-token "discombobulated")))
+(Given (regex "^that we have logged in as (.*) and gotten a token")
+       (# (user done)
+          (var that this
+               password (if (= user "admin@gower.st")
+                          "grumpycat"
+                          "minnie"))
+          (request.get (+ ACCOUNT_SERVICE "/account/authenticate/" user)
+                       { 'json { 'password password }}
+                       (# (err resp body)
+                          (if err
+                            (throw err))
+                          (if (= resp.status-code 200)
+                            (do
+                              (console.log "cookies" (get resp.headers "set-cookie"))
+                              (that.set-token (first (get resp.headers "set-cookie")))
+                              (done))
+                            (throw (new Error (+ "status of POST was " resp.status-code))))))))
 
 (When (regex "^we send JSON (.*) with a GET to the path (.*)$")
       (# (obj url done)
@@ -39,18 +72,41 @@
                          (that.set-body (JSON.parse body))
                          (done)))))
 
-(When (regex "^we POST to the path (.*)$")
+(When (regex "^we POST an account to the path (.*)$")
       (# (url done)
          (var that this)
          (request.post (+ ACCOUNT_SERVICE url)
-                       {'json {'token that.token
-                               'email "mmouse@disney.com"
+                       {'json {'email "mmouse@disney.com"
                                'password "minnie"
-                               'organisation "Disney, Inc."}}
+                               'name "Michael Mouse"
+                               'company_id 99}
+                        'headers { 'cookie this.token }}
                        (# (err resp body)
                           (that.set-response resp)
                           (that.set-body body)
                           (done)))))
+
+(When (regex "^we try and change the password for user \"(.*)\" using token \"(.*)\" to \"(.*)\"$")
+      (# (user token new-password done)
+         (var that this)
+         (request.put (+ ACCOUNT_SERVICE "/account/change_password/" user)
+                      {'json {'token token
+                              'new_password new-password}}
+                      (# (err resp  body)
+                         (that.set-response resp)
+                         (that.set-body body)
+                         (done)))))
+
+(When (regex "^we try and change the password for user \"(.*)\" using the correct token to \"(.*)\"$")
+      (# (user new-password done)
+         (var that this)
+         (request.put (+ ACCOUNT_SERVICE "/account/change_password/" user)
+                      {'json {'token that.token
+                              'new_password new-password}}
+                      (# (err resp  body)
+                         (that.set-response resp)
+                         (that.set-body body)
+                         (done)))))
 
 (Then "we should get a reply with status 200 OK"
       (#> (assert.equal this.response.status-code 200)))
@@ -70,13 +126,18 @@
       (# (x)
          (assert.ok (has-key? this.body x))))
 
-(Then (regex "the \"(.*)\" attribute is a string$")
+(Then (regex "^the \"(.*)\" attribute is a string$")
       (# (attr) (assert.equal "string" (typeof (get this.body attr)))))
 
 (Then (regex "^the \"(.*)\" attribute is the string \"(.*)\"$")
       (# (attr val)
          (assert.ok (has-key? this.body attr))
          (assert.equal (get this.body attr) val)))
-                    
+
+(Then (regex "^the \"(.*)\" attribute is the number ([0-9]+)$")
+      (# (attr val)
+         (assert.ok (has-key? this.body attr))
+         (assert.equal (get this.body attr) val)))
+
 (Then (regex "^the \"(.*)\" attribute is true$")
       (# (attr) (assert.ok (get this.body attr))))
