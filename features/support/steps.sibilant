@@ -6,6 +6,22 @@
 (var ACCOUNT_SERVICE "http://localhost:8080"
      ADMIN_TOKEN process.env.ADMIN_TOKEN)
 
+(Given "that there is no account for mmouse@disney.com"
+       (# (done)
+          (request.delete (+ ACCOUNT_SERVICE "/account/mmouse%40disney.com")
+                          {'headers { 'cookie ADMIN_TOKEN }}
+                          (# (err resp body)
+                             (if err
+                               (do
+                                 (console.log "Error" err)
+                                 (done))
+                               ;; else
+                               (if (= resp.status-code 200)
+                                 (done)
+                                 (do
+                                   (console.log "body was" body)
+                                   (throw (new Error (+ "status of DELETE was " resp.status-code))))))))))
+
 (Given "an active account for Mickey Mouse"
        (# (done)
           ;; Then create the mmouse account
@@ -16,13 +32,14 @@
                                 'name "Michael Mouse"}
                          'headers { 'cookie ADMIN_TOKEN }}
                         (# (err resp body)
-                           (console.log "posted to /account/mmouse")
                            (if err
-                             (throw err))
-                           (if (= resp.status-code 201)
-                             (done)
                              (do
-                               (console.log "body was" body)
+                               (console.log "Error" err)
+                               (done))
+                             ;; else
+                             (if (or (= resp.status-code 201)
+                                     (= resp.status-code 409))
+                               (done)
                                (throw (new Error (+ "status of POST was " resp.status-code)))))))))
 
 (Given (regex "^that we have logged in as (.*) and gotten a token")
@@ -38,10 +55,12 @@
                             (throw err))
                           (if (= resp.status-code 200)
                             (do
-                              (console.log "cookies" (get resp.headers "set-cookie"))
                               (that.set-token (first (get resp.headers "set-cookie")))
                               (done))
                             (throw (new Error (+ "status of POST was " resp.status-code))))))))
+
+(Given "that we are not logged in"
+       (#> (this.set-token "")))
 
 (When (regex "^we send JSON (.*) with a GET to the path (.*)$")
       (# (obj url done)
@@ -86,23 +105,12 @@
                           (that.set-body body)
                           (done)))))
 
-(When (regex "^we try and change the password for user \"(.*)\" using token \"(.*)\" to \"(.*)\"$")
-      (# (user token new-password done)
-         (var that this)
-         (request.put (+ ACCOUNT_SERVICE "/account/change_password/" user)
-                      {'json {'token token
-                              'new_password new-password}}
-                      (# (err resp  body)
-                         (that.set-response resp)
-                         (that.set-body body)
-                         (done)))))
-
-(When (regex "^we try and change the password for user \"(.*)\" using the correct token to \"(.*)\"$")
+(When (regex "^we try and change the password for user \"(.*)\" to \"(.*)\"$")
       (# (user new-password done)
          (var that this)
          (request.put (+ ACCOUNT_SERVICE "/account/change_password/" user)
-                      {'json {'token that.token
-                              'new_password new-password}}
+                      {'json {'new_password new-password}
+                       'headers {'cookie that.token}}
                       (# (err resp  body)
                          (that.set-response resp)
                          (that.set-body body)
@@ -116,6 +124,9 @@
 
 (Then "we should get a reply with status 401 UNAUTHORIZED"
       (#> (assert.equal this.response.status-code 401)))
+
+(Then "we should get a reply with status 409 CONFLICT"
+      (#> (assert.equal this.response.status-code 409)))
 
 (Then "the reply is a JSON object"
       (#> (var ct (get this 'response 'headers "content-type"))
@@ -141,3 +152,18 @@
 
 (Then (regex "^the \"(.*)\" attribute is true$")
       (# (attr) (assert.ok (get this.body attr))))
+
+(Then (regex "^the reply has a cookie set named \"(.*)\"$")
+      (# (x)
+         (var cookies (get this.response.headers "set-cookie"))
+         (assert.ok (.starts-with (first cookies) 'token))))
+
+(Then "we should be able to login with the new password {string}"
+      (# (password done)
+          (request.get (+ ACCOUNT_SERVICE "/account/authenticate/mmouse%40disney.com")
+                       {'json {'password password}}
+                       (# (err resp body)
+                          (if err
+                            (throw err))
+                          (assert.equal 200 resp.status-code 200)
+                          (done)))))

@@ -21,6 +21,7 @@ test:
 	docker run -it \
 	-w="/var/app" \
 	--network=host \
+	-e ADMIN_TOKEN \
 	-v `pwd`/features:/var/app/features \
 	sleepyfox/cucumber-js sh -c "npx cucumber-js -t '@mvp and not @skip'"
 

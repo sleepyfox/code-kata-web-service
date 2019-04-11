@@ -3,6 +3,7 @@ Feature: Create a new account
 @create-account @mvp
 Scenario: the service can store a new account
   Given that we have logged in as admin@gower.st and gotten a token
+  And that there is no account for mmouse@disney.com
   When we POST an account to the path /account/mmouse@disney.com
   Then we should get a reply with status 201 CREATED
   And the reply is a JSON object
@@ -22,3 +23,10 @@ Scenario: a non-admin user cannot create an account
 Scenario: an unauthenticated user cannot create an account
   When we POST an account to the path /account/mmouse@disney.com
   Then we should get a reply with status 401 UNAUTHORIZED
+
+@create-account @mvp
+Scenario: a duplicate account is not created
+  Given an active account for Mickey Mouse
+  And that we have logged in as admin@gower.st and gotten a token
+  When we POST an account to the path /account/mmouse@disney.com
+  Then we should get a reply with status 409 CONFLICT
