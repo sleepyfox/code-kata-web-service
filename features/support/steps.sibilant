@@ -16,11 +16,10 @@
                                  (console.log "Error" err)
                                  (done))
                                ;; else
-                               (if (= resp.status-code 200)
+                               (if (or (= resp.status-code 204)
+                                       (= resp.status-code 404))
                                  (done)
-                                 (do
-                                   (console.log "body was" body)
-                                   (throw (new Error (+ "status of DELETE was " resp.status-code))))))))))
+                                 (throw (new Error (+ "status of DELETE was " resp.status-code)))))))))
 
 (Given "an active account for Mickey Mouse"
        (# (done)
@@ -116,11 +115,30 @@
                          (that.set-body body)
                          (done)))))
 
+(When (regex "^we DELETE to the path (.*) with the correct token$")
+      (# (path done)
+         (var that this)
+         (request.delete (+ ACCOUNT_SERVICE "/account/mmouse%40disney.com")
+                         {'headers { 'cookie this.token }}
+                         (# (err resp body)
+                            (if err
+                              (do
+                                (console.log "Error" err)
+                                (done))
+                              ;; else
+                              (do
+                                (that.set-response resp)
+                                (that.set-body body)
+                                (done)))))))
+
 (Then "we should get a reply with status 200 OK"
       (#> (assert.equal this.response.status-code 200)))
 
 (Then "we should get a reply with status 201 CREATED"
       (#> (assert.equal this.response.status-code 201)))
+
+(Then "we should get a reply with status 204 NO CONTENT"
+      (#> (assert.equal this.response.status-code 204)))
 
 (Then "we should get a reply with status 401 UNAUTHORIZED"
       (#> (assert.equal this.response.status-code 401)))
@@ -160,10 +178,20 @@
 
 (Then "we should be able to login with the new password {string}"
       (# (password done)
-          (request.get (+ ACCOUNT_SERVICE "/account/authenticate/mmouse%40disney.com")
-                       {'json {'password password}}
-                       (# (err resp body)
-                          (if err
-                            (throw err))
-                          (assert.equal 200 resp.status-code 200)
-                          (done)))))
+         (request.get (+ ACCOUNT_SERVICE "/account/authenticate/mmouse%40disney.com")
+                      {'json {'password password}}
+                      (# (err resp body)
+                         (if err
+                           (throw err))
+                         (assert.equal 200 resp.status-code)
+                         (done)))))
+
+(Then "we cannot login with our usual credentials"
+      (# (done)
+         (request.get (+ ACCOUNT_SERVICE "/account/authenticate/mmouse%40disney.com")
+                      {'json {'password "minnie"}}
+                      (# (err resp body)
+                         (if err
+                           (throw err))
+                         (assert.not-equal 200 resp.status-code)
+                         (done)))))
